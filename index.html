@@ -29,14 +29,12 @@
         </div>
         
         <div class="derechoContainer">
-            
             <button id="btnAdminAcceso" class="auth-btn">
                 🔑 Acceso Admin
             </button>
             <button id="btnAdminPanel" class="auth-btn" style="display: none;">
                 ⚙️ Panel Admin
             </button>
-            <!-- ⭐ ESTE ES EL BOTÓN QUE DEBE EXISTIR EN EL HTML ⭐ -->
             <button id="btnCerrarSesionAdmin" class="auth-btn" style="display: none; background-color: #f44336; color: white; margin-left: 10px;">
                 🚪 Cerrar Sesión Admin
             </button>
@@ -75,18 +73,7 @@
             <div class="modal-cuerpo">
                 <h2>🛍️ Gestión de Productos</h2>
                 
-                <!-- INSTRUCCIONES DE SINCRONIZACIÓN (NUEVO) -->
-                <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2196F3;">
-                    <h4 style="margin: 0 0 10px 0; color: #0D47A1;">🔄 Sincronización entre Computadoras</h4>
-                    <p style="margin: 0; color: #333; font-size: 14px;">
-                        <strong>Para trabajar en dos computadoras:</strong><br>
-                        1. En Comp1: Agrega/edita productos<br>
-                        2. En Comp1: Haz clic en <strong>📤 Exportar Datos</strong><br>
-                        3. Comparte el archivo .json por WhatsApp/Email<br>
-                        4. En Comp2: Haz clic en <strong>📥 Importar Datos</strong><br>
-                        5. ¡Listo! Ambas computadoras tendrán los mismos productos.
-                    </p>
-                </div>
+                <!-- Los botones de sincronización se agregarán automáticamente aquí -->
                 
                 <!-- Formulario para agregar/editar productos -->
                 <div class="admin-section">
@@ -151,8 +138,6 @@
                     </form>
                 </div>
                 
-                <!-- Los botones de sincronización se agregan automáticamente aquí por JavaScript -->
-                
                 <!-- Lista de productos existentes -->
                 <div class="admin-section">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -193,15 +178,13 @@
             <p style="margin-top: 10px; font-size: 14px; color: #999;">
                 📱 WhatsApp: +3794034489 | 📧 npamaciel@gmail.com | 📸 @clean.solutions610
             </p>
-            <p style="margin-top: 10px; font-size: 12px; color: #777;">
-                🔄 Sistema de sincronización entre computadoras activo
-            </p>
         </div>
     </footer>
 
-<script src="google-sheets.js"></script>
-<script src="productos.js"></script>
-<script src="script.js"></script>
-<script src="admin-mejorado.js"></script> 
+    <!-- SCRIPTS EN ORDEN CORRECTO -->
+    <script src="google-sheets.js"></script>      <!-- 1. Conexión a Sheets -->
+    <script src="productos.js"></script>          <!-- 2. Sistema de productos -->
+    <script src="script.js"></script>             <!-- 3. Funcionalidad principal -->
+    <script src="admin-mejorado.js"></script>     <!-- 4. Sistema admin MEJORADO -->
 </body>
 </html>

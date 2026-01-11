@@ -1,7 +1,8 @@
-// google-sheets.js - Conexión con Google Sheets de Clean Solutions
+// google-sheets.js - Conexión con Google Sheets (VERSIÓN CORREGIDA)
+
 // ID de TU hoja de cálculo
 const SHEET_ID_MAIN = "1GAUcFQMLBDyuQQhc79RvPEOrkyXet5dtpsDUkxPnLsY";
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID_MAIN}/gviz/tq?tqx=out:json`;
 
 // Función para cargar productos desde Google Sheets
 async function cargarProductosDesdeGoogleSheets() {
