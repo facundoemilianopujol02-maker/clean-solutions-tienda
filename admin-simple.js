@@ -888,6 +888,96 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('adminNombre').focus();
     }
     
+    // Agrega esta función en admin-simple.js (después de guardarProducto)
+function mostrarOpcionesGoogleSheets(producto) {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+    `;
+    
+    const datosParaSheets = `
+Agrega esta fila en Google Sheets:
+
+📋 COPIA Y PEGA EN LA SIGUIENTE FILA VACÍA:
+
+${producto.id || 'nuevo-' + Date.now()}	${producto.nombre}	${producto.precio}	${producto.imagen}	${producto.descripcion}	${producto.caracteristicas.join('|')}
+
+👉 https://docs.google.com/spreadsheets/d/1GAUcFQMLBDyuQQhc79RvPEOrkyXet5dtpsDUkxPnLsY/edit
+    `.trim();
+    
+    modal.innerHTML = `
+        <div style="background: white; padding: 25px; border-radius: 10px; max-width: 600px; width: 90%;">
+            <h3 style="margin-bottom: 15px;">📤 ¿Compartir producto con todos los clientes?</h3>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; font-family: monospace; white-space: pre-wrap; font-size: 14px;">
+                ${datosParaSheets}
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button id="copiarDatos" style="padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    📋 Copiar datos
+                </button>
+                <button id="abrirSheets" style="padding: 10px 20px; background: #2196F3; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    🔗 Abrir Google Sheets
+                </button>
+                <button id="cerrarModal" style="padding: 10px 20px; background: #f0f0f0; color: #333; border: none; border-radius: 5px; cursor: pointer;">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    document.getElementById('copiarDatos').addEventListener('click', function() {
+        const texto = `${producto.id || 'nuevo-' + Date.now()}\t${producto.nombre}\t${producto.precio}\t${producto.imagen}\t${producto.descripcion}\t${producto.caracteristicas.join('|')}`;
+        
+        navigator.clipboard.writeText(texto)
+            .then(() => {
+                this.textContent = '✅ ¡Copiado!';
+                this.style.background = '#2E7D32';
+                setTimeout(() => {
+                    this.textContent = '📋 Copiar datos';
+                    this.style.background = '#4CAF50';
+                }, 2000);
+            })
+            .catch(() => {
+                alert('Copia manual: ' + texto);
+            });
+    });
+    
+    document.getElementById('abrirSheets').addEventListener('click', function() {
+        window.open('https://docs.google.com/spreadsheets/d/1GAUcFQMLBDyuQQhc79RvPEOrkyXet5dtpsDUkxPnLsY/edit', '_blank');
+    });
+    
+    document.getElementById('cerrarModal').addEventListener('click', function() {
+        document.body.removeChild(modal);
+    });
+    
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            document.body.removeChild(modal);
+        }
+    });
+}
+
+// Luego, en la función guardarProducto, después de guardar:
+// Agrega esta línea al final:
+mostrarOpcionesGoogleSheets({
+    id: productoId || nuevoProducto.id,
+    nombre: nombre,
+    precio: precio,
+    imagen: imagenFinal,
+    descripcion: descripcion,
+    caracteristicas: caracteristicas
+});
     function resetFormProducto() {
         if (formProducto) {
             formProducto.reset();
