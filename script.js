@@ -1,19 +1,30 @@
-// script.js - Funcionalidad principal SIMPLIFICADA
-// Solo catálogo y búsqueda de productos (sin autenticación)
+// script.js - VERSIÓN CORREGIDA para Google Sheets
 
 document.addEventListener('DOMContentLoaded', function() {
-    // ========== FUNCIÓN PARA OBTENER PRODUCTOS ==========
-    function obtenerProductosActuales() {
-        return window.ProductosDB ? window.ProductosDB.obtenerTodos() : [];
+    // ========== FUNCIÓN CORREGIDA ==========
+    async function obtenerProductosActuales() {
+        if (window.ProductosDB && window.ProductosDB.obtenerTodos) {
+            try {
+                const productos = await window.ProductosDB.obtenerTodos();
+                return productos || [];
+            } catch (error) {
+                console.error('Error obteniendo productos:', error);
+                return [];
+            }
+        }
+        console.warn('ProductosDB no disponible');
+        return [];
     }
     
-    // Función para cargar imagen desde localStorage (AGREGADA)
+    // ========== FUNCIÓN PARA CARGAR IMAGEN ==========
     function cargarImagenDesdeStorage(nombre) {
+        if (window.ProductosDB && window.ProductosDB.cargarImagen) {
+            return window.ProductosDB.cargarImagen(nombre);
+        }
         try {
             const imagenesGuardadas = JSON.parse(localStorage.getItem('cleanSolutionsImages') || '{}');
             return imagenesGuardadas[nombre] || null;
         } catch (error) {
-            console.error('Error al cargar imagen:', error);
             return null;
         }
     }
@@ -27,13 +38,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const busquedaForma = document.querySelector('.busquedaForma');
     const contadorResultados = document.querySelector('.contador-resultados');
     
-    // ========== VERIFICACIÓN DE ELEMENTOS ==========
+    // ========== VERIFICACIÓN ==========
     if (!modalOverlay || !modalCerrar || !modalCuerpo || !contenedorProductos) {
         console.error('Error: Elementos del DOM no encontrados');
         return;
     }
     
-    // ========== DATOS ESTÁTICOS ==========
+    // ========== DATOS DE CONTACTO ==========
     const misDatos = {
         whatsapp: '+3794034489',
         correo: 'npamaciel@gmail.com',
@@ -42,18 +53,15 @@ document.addEventListener('DOMContentLoaded', function() {
         direccion: 'Bruno Esquivel 1130'
     };
     
-    // ========== ESTADO DE LA APLICACIÓN ==========
-    let productosFiltrados = [...obtenerProductosActuales()];
+    // ========== ESTADO ==========
+    let productosFiltrados = [];
     
     // ========== INICIALIZACIÓN ==========
-    function inicializar() {
-        console.log('🛒 Inicializando catálogo de productos...');
-        console.log(`📊 Productos cargados: ${obtenerProductosActuales().length}`);
-        
-        cargarProductos();
+    async function inicializar() {
+        console.log('🛒 Inicializando catálogo...');
+        await cargarProductos();
         configurarEventos();
-        
-        console.log('✅ CleanSolutions - Página cargada correctamente');
+        console.log('✅ Tienda lista');
     }
     
     // ========== FUNCIONES DE UTILIDAD ==========
@@ -66,10 +74,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function crearCardProducto(producto) {
-        // Intentar cargar imagen desde localStorage (MODIFICADO)
         let imagenSrc = producto.imagen;
         
-        // Verificar si es una imagen local (sin http/https) o una imagen por defecto
         if (producto.imagen && !producto.imagen.startsWith('http') && !producto.imagen.startsWith('data:')) {
             const dataURL = cargarImagenDesdeStorage(producto.imagen);
             if (dataURL) {
@@ -96,8 +102,12 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
     
-    function cargarProductos(productosArray = obtenerProductosActuales()) {
+    async function cargarProductos(productosArray = null) {
         contenedorProductos.innerHTML = '';
+        
+        if (!productosArray) {
+            productosArray = await obtenerProductosActuales();
+        }
         
         if (productosArray.length === 0) {
             contenedorProductos.innerHTML = `
@@ -126,10 +136,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // ========== FUNCIONALIDAD DE BÚSQUEDA ==========
-    function buscarProductos(termino) {
+    // ========== BÚSQUEDA ==========
+    async function buscarProductos(termino) {
         const terminoNormalizado = normalizarTexto(termino);
-        const productosActuales = obtenerProductosActuales();
+        const productosActuales = await obtenerProductosActuales();
         
         if (!terminoNormalizado) {
             productosFiltrados = [...productosActuales];
@@ -166,9 +176,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // ========== MODAL DE DETALLES DEL PRODUCTO ==========
-    function abrirModal(productoId) {
-        const productosActuales = obtenerProductosActuales();
+    // ========== MODAL DE DETALLES ==========
+    async function abrirModal(productoId) {
+        const productosActuales = await obtenerProductosActuales();
         const producto = productosActuales.find(p => p.id === productoId);
         
         if (!producto) {
@@ -176,7 +186,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Intentar cargar imagen desde localStorage (MODIFICADO)
         let imagenSrc = producto.imagen;
         if (producto.imagen && !producto.imagen.startsWith('http') && !producto.imagen.startsWith('data:')) {
             const dataURL = cargarImagenDesdeStorage(producto.imagen);
@@ -378,15 +387,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // ========== FUNCIÓN PÚBLICA PARA ADMIN ==========
-    // Esta función será llamada por admin-simple.js cuando se agregue un producto
-    window.cargarProductos = function() {
-        const productosActuales = obtenerProductosActuales();
+    // ========== FUNCIÓN PARA ADMIN ==========
+    window.cargarProductos = async function() {
+        const productosActuales = await obtenerProductosActuales();
         productosFiltrados = [...productosActuales];
-        cargarProductos();
+        await cargarProductos();
     };
     
-    // ========== INICIALIZAR ==========
+    // ========== INICIAR ==========
     setTimeout(() => {
         inicializar();
         
