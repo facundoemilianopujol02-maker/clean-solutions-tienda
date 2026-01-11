@@ -913,8 +913,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // ========== FUNCIONES DE PRODUCTOS ==========
     function obtenerProductos() {
-        return window.ProductosDB ? window.ProductosDB.obtenerTodos() : [];
+    if (window.ProductosDB && window.ProductosDB.obtenerTodos) {
+        // Si es async (promesa), manejarlo
+        const resultado = window.ProductosDB.obtenerTodos();
+        if (resultado && typeof resultado.then === 'function') {
+            // Es una promesa, devolver array vacío temporal
+            return [];
+        }
+        return resultado || [];
     }
+    return [];
+}
     
     function agregarProductoDB(nuevoProducto) {
         if (window.ProductosDB) {

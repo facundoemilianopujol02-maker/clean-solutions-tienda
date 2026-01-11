@@ -1,121 +1,293 @@
-// productos.js - Con persistencia en localStorage
+// productos.js - Sistema HÍBRIDO Google Sheets + localStorage COMPLETO
 
-// Variables de imágenes por defecto
-const IMAGEN_POR_DEFECTO = 'https://via.placeholder.com/300x300/cccccc/969696?text=Imagen+no+disponible';
-const IMAGEN_POR_DEFECTO_CARD = 'https://via.placeholder.com/250x200/cccccc/969696?text=Sin+imagen';
-
-// PRODUCTOS POR DEFECTO (backup inicial)
+// ========== CONFIGURACIÓN ==========
 const PRODUCTOS_POR_DEFECTO = [
     {
-        id: 'jabon-ariel',
-        nombre: 'Jabón tipo Ariel - Limpieza Profunda',
+        id: 'demo-1',
+        nombre: 'Jabón Líquido Ariel',
         precio: '$8.000',
-        imagen: 'jabonAriel.jpg', 
-        descripcion: 'Jabón líquido tipo Ariel baja espuma.',
-        caracteristicas: [
-            'Precio por litro: $1.800'
-        ]
+        imagen: 'https://via.placeholder.com/300x300/4CAF50/FFFFFF?text=Ariel',
+        descripcion: 'Jabón líquido para ropa de todo tipo',
+        caracteristicas: ['Precio por litro: $1.800', 'Limpieza profunda', 'Baja espuma']
     },
     {
-        id: 'jabon-alaPan',
-        nombre: 'Jabón blanco ala',
-        precio: '$1.000',
-        imagen: 'alapan.jpg', 
-        descripcion: 'Jabón blanco ala x2 unidades.',
-        caracteristicas: [
-            'Pack de 2 unidades',
-            'Para blanqueo profundo'
-        ]
-    },
-    // ... todos tus productos actuales ...
-    {
-        id: 'toallita-always',
-        nombre: 'Toallita Always',
-        precio: '$1250',
-        imagen: 'alwaysToallita.jpg',  
-        descripcion: 'Toallitas Protectoras always.',
-        caracteristicas: [
-            'Tela suave',
-            'Ajuste perfecto',
-            'Nuevo pegamento'
-        ]
+        id: 'demo-2',
+        nombre: 'Detergente en Polvo',
+        precio: '$5.000',
+        imagen: 'https://via.placeholder.com/300x300/2196F3/FFFFFF?text=Detergente',
+        descripcion: 'Detergente para ropa blanca y de color',
+        caracteristicas: ['Económico', 'Rinde más', 'Para agua fría']
     }
 ];
 
-// CLAVE para localStorage
+// Claves para localStorage
 const PRODUCTOS_KEY = 'cleanSolutionsProductos_v1';
+const IMAGENES_KEY = 'cleanSolutionsImages';
+const CACHE_KEY = 'cleanSolutions_cache';
+const LOCAL_PRODUCTOS_KEY = 'cleanSolutions_productos_locales';
 
-// Cargar productos desde localStorage o usar los por defecto
-function cargarProductosDesdeStorage() {
+// ========== FUNCIONES PARA IMÁGENES ==========
+function guardarImagenEnStorage(nombre, dataURL) {
     try {
-        const productosGuardados = localStorage.getItem(PRODUCTOS_KEY);
-        if (productosGuardados) {
-            return JSON.parse(productosGuardados);
-        }
-    } catch (error) {
-        console.error('Error al cargar productos:', error);
-    }
-    
-    // Si no hay productos guardados, usar los por defecto
-    guardarProductosEnStorage(PRODUCTOS_POR_DEFECTO);
-    return PRODUCTOS_POR_DEFECTO;
-}
-
-// Guardar productos en localStorage
-function guardarProductosEnStorage(productosArray) {
-    try {
-        localStorage.setItem(PRODUCTOS_KEY, JSON.stringify(productosArray));
-        console.log(`💾 Productos guardados: ${productosArray.length} items`);
+        const imagenesGuardadas = JSON.parse(localStorage.getItem(IMAGENES_KEY) || '{}');
+        imagenesGuardadas[nombre] = dataURL;
+        localStorage.setItem(IMAGENES_KEY, JSON.stringify(imagenesGuardadas));
         return true;
     } catch (error) {
-        console.error('Error al guardar productos:', error);
+        console.error('Error al guardar imagen:', error);
         return false;
     }
 }
 
-// Obtener la lista de productos (siempre desde storage)
-let productos = cargarProductosDesdeStorage();
-
-// Funciones para modificar productos
-function agregarProducto(nuevoProducto) {
-    productos.push(nuevoProducto);
-    guardarProductosEnStorage(productos);
-    return nuevoProducto;
-}
-
-function actualizarProducto(id, datosActualizados) {
-    const index = productos.findIndex(p => p.id === id);
-    if (index !== -1) {
-        productos[index] = { ...productos[index], ...datosActualizados };
-        guardarProductosEnStorage(productos);
-        return true;
+function cargarImagenDesdeStorage(nombre) {
+    try {
+        const imagenesGuardadas = JSON.parse(localStorage.getItem(IMAGENES_KEY) || '{}');
+        return imagenesGuardadas[nombre] || null;
+    } catch (error) {
+        console.error('Error al cargar imagen:', error);
+        return null;
     }
-    return false;
 }
 
-function eliminarProducto(id) {
-    const index = productos.findIndex(p => p.id === id);
-    if (index !== -1) {
-        productos.splice(index, 1);
-        guardarProductosEnStorage(productos);
-        return true;
+function obtenerTodasImagenes() {
+    try {
+        return JSON.parse(localStorage.getItem(IMAGENES_KEY) || '{}');
+    } catch (error) {
+        console.error('Error obteniendo imágenes:', error);
+        return {};
     }
-    return false;
 }
 
-// Función para resetear a productos por defecto (solo admin)
-function resetearProductos() {
-    productos = [...PRODUCTOS_POR_DEFECTO];
-    guardarProductosEnStorage(productos);
-    return productos;
+// ========== FUNCIONES PARA PRODUCTOS ==========
+async function obtenerTodosProductos() {
+    let productosFinales = [];
+    let fuente = 'desconocida';
+    
+    // 1. INTENTAR DESDE GOOGLE SHEETS
+    if (window.GoogleSheetsDB && typeof window.GoogleSheetsDB.cargar === 'function') {
+        try {
+            const productosSheets = await window.GoogleSheetsDB.cargar();
+            
+            if (productosSheets && productosSheets.length > 0) {
+                console.log(`📊 ${productosSheets.length} productos desde Google Sheets`);
+                productosFinales = [...productosSheets];
+                fuente = 'google_sheets';
+            }
+        } catch (error) {
+            console.log('⚠️ Falló Google Sheets:', error.message);
+        }
+    }
+    
+    // 2. PRODUCTOS LOCALES DEL ADMIN (prioridad si hay)
+    const productosLocales = obtenerProductosLocales();
+    if (productosLocales.length > 0) {
+        console.log(`🏠 ${productosLocales.length} productos locales del admin`);
+        
+        if (productosFinales.length === 0) {
+            // Si no hay productos de Sheets, usar locales
+            productosFinales = [...productosLocales];
+            fuente = 'local_storage';
+        } else {
+            // Combinar: evitar duplicados por ID
+            const idsExistentes = new Set(productosFinales.map(p => p.id));
+            const productosNuevos = productosLocales.filter(p => !idsExistentes.has(p.id));
+            productosFinales = [...productosFinales, ...productosNuevos];
+            fuente = 'combinado';
+        }
+    }
+    
+    // 3. PRODUCTOS EN CACHÉ ANTIGUA (backward compatibility)
+    if (productosFinales.length === 0) {
+        try {
+            const cache = localStorage.getItem(CACHE_KEY);
+            if (cache) {
+                const cachedData = JSON.parse(cache);
+                if (cachedData.productos && cachedData.productos.length > 0) {
+                    productosFinales = [...cachedData.productos];
+                    fuente = 'cache_antigua';
+                    console.log(`🔄 ${productosFinales.length} productos desde caché antigua`);
+                }
+            }
+        } catch (cacheError) {
+            console.error('Error leyendo caché antigua:', cacheError);
+        }
+    }
+    
+    // 4. SISTEMA ANTIGUO DE PRODUCTOS (backward compatibility)
+    if (productosFinales.length === 0) {
+        try {
+            const productosViejos = localStorage.getItem(PRODUCTOS_KEY);
+            if (productosViejos) {
+                productosFinales = JSON.parse(productosViejos);
+                fuente = 'sistema_antiguo';
+                console.log(`📦 ${productosFinales.length} productos del sistema antiguo`);
+            }
+        } catch (error) {
+            console.error('Error leyendo productos antiguos:', error);
+        }
+    }
+    
+    // 5. PRODUCTOS POR DEFECTO (último recurso)
+    if (productosFinales.length === 0) {
+        console.log('🔧 Usando productos por defecto');
+        productosFinales = [...PRODUCTOS_POR_DEFECTO];
+        fuente = 'por_defecto';
+    }
+    
+    console.log(`✅ Total: ${productosFinales.length} productos (fuente: ${fuente})`);
+    return productosFinales;
 }
 
-// Exportar funciones
+// ========== FUNCIONES PARA PRODUCTOS LOCALES ==========
+function obtenerProductosLocales() {
+    try {
+        const data = localStorage.getItem(LOCAL_PRODUCTOS_KEY);
+        return data ? JSON.parse(data) : [];
+    } catch (error) {
+        console.error('Error leyendo productos locales:', error);
+        return [];
+    }
+}
+
+function guardarProductosLocales(productos) {
+    try {
+        localStorage.setItem(LOCAL_PRODUCTOS_KEY, JSON.stringify(productos));
+        console.log(`💾 ${productos.length} productos guardados localmente`);
+        return true;
+    } catch (error) {
+        console.error('Error guardando productos locales:', error);
+        return false;
+    }
+}
+
+// ========== SISTEMA DE EXPORTACIÓN/IMPORTACIÓN ==========
+function exportarProductosCompletos() {
+    return obtenerTodosProductos().then(productos => {
+        const imagenes = obtenerTodasImagenes();
+        
+        return {
+            fecha: new Date().toISOString(),
+            version: '2.0',
+            productos: productos,
+            imagenes: imagenes,
+            metadata: {
+                totalProductos: productos.length,
+                totalImagenes: Object.keys(imagenes).length,
+                exportadoPor: 'Clean Solutions v2',
+                fuente: 'sistema_hibrido'
+            }
+        };
+    });
+}
+
+async function importarProductosCompletos(datos) {
+    if (!datos.productos || !Array.isArray(datos.productos)) {
+        throw new Error('Formato de datos inválido');
+    }
+    
+    // Guardar productos
+    guardarProductosLocales(datos.productos);
+    
+    // Guardar imágenes si existen
+    if (datos.imagenes && typeof datos.imagenes === 'object') {
+        localStorage.setItem(IMAGENES_KEY, JSON.stringify(datos.imagenes));
+    }
+    
+    console.log(`📥 ${datos.productos.length} productos importados`);
+    return datos.productos;
+}
+
+// ========== API PÚBLICA ==========
 window.ProductosDB = {
-    obtenerTodos: () => [...productos],
-    agregar: agregarProducto,
-    actualizar: actualizarProducto,
-    eliminar: eliminarProducto,
-    resetear: resetearProductos,
-    guardar: () => guardarProductosEnStorage(productos)
+    // Obtener todos los productos
+    obtenerTodos: obtenerTodosProductos,
+    
+    // Funciones CRUD para admin
+    agregar: async function(nuevoProducto) {
+        const productos = await obtenerTodosProductos();
+        productos.push(nuevoProducto);
+        guardarProductosLocales(productos);
+        return nuevoProducto;
+    },
+    
+    actualizar: async function(id, datosActualizados) {
+        const productos = await obtenerTodosProductos();
+        const index = productos.findIndex(p => p.id === id);
+        
+        if (index !== -1) {
+            productos[index] = { ...productos[index], ...datosActualizados };
+            guardarProductosLocales(productos);
+            return true;
+        }
+        return false;
+    },
+    
+    eliminar: async function(id) {
+        const productos = await obtenerTodosProductos();
+        const index = productos.findIndex(p => p.id === id);
+        
+        if (index !== -1) {
+            productos.splice(index, 1);
+            guardarProductosLocales(productos);
+            return true;
+        }
+        return false;
+    },
+    
+    // Guardar cambios
+    guardar: async function() {
+        const productos = await obtenerTodosProductos();
+        guardarProductosLocales(productos);
+        return productos;
+    },
+    
+    // Resetear
+    resetear: function() {
+        guardarProductosLocales(PRODUCTOS_POR_DEFECTO);
+        return PRODUCTOS_POR_DEFECTO;
+    },
+    
+    // Funciones de imágenes
+    guardarImagen: guardarImagenEnStorage,
+    cargarImagen: cargarImagenDesdeStorage,
+    obtenerImagenes: obtenerTodasImagenes,
+    
+    // Exportar/Importar
+    exportarCompleto: exportarProductosCompletos,
+    importarCompleto: importarProductosCompletos,
+    
+    // Backward compatibility
+    obtenerProductosViejos: function() {
+        try {
+            const data = localStorage.getItem(PRODUCTOS_KEY);
+            return data ? JSON.parse(data) : [];
+        } catch (error) {
+            return [];
+        }
+    }
 };
+
+// ========== INICIALIZACIÓN AUTOMÁTICA ==========
+// Migrar datos antiguos al nuevo sistema (si existe)
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(async () => {
+        try {
+            // Verificar si hay datos en el sistema antiguo
+            const productosViejos = window.ProductosDB.obtenerProductosViejos();
+            const productosLocales = obtenerProductosLocales();
+            
+            if (productosViejos.length > 0 && productosLocales.length === 0) {
+                console.log('🔄 Migrando datos antiguos al nuevo sistema...');
+                guardarProductosLocales(productosViejos);
+                console.log(`✅ ${productosViejos.length} productos migrados`);
+            }
+            
+            // Cargar productos para verificar
+            const productos = await obtenerTodosProductos();
+            console.log('🎯 Sistema de productos inicializado correctamente');
+            
+        } catch (error) {
+            console.error('Error en inicialización:', error);
+        }
+    }, 1000);
+});
