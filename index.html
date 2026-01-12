@@ -1,11 +1,68 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <!-- FAVICON - Agrega aquí tu logo -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clean Solutions - Productos de Limpieza</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* ESTILOS PARA CENTRAR LA BARRA DE BÚSQUEDA */
+        .franjaSuperior {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            gap: 20px; /* Espacio entre elementos */
+        }
+        
+        .logoContainer {
+            flex-shrink: 0; /* Evita que el logo se encoja */
+        }
+        
+        .busquedaContainer {
+            flex: 1; /* Toma el espacio disponible */
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Centra horizontalmente */
+            max-width: 800px; /* Ancho máximo para no extenderse demasiado */
+            margin: 0 auto; /* Centra el contenedor */
+        }
+        
+        .busquedaForma {
+            width: 100%;
+            max-width: 600px; /* Ancho máximo de la barra */
+            display: flex;
+        }
+        
+        .derechoContainer {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .franjaSuperior {
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+            
+            .busquedaContainer {
+                order: 3; /* Coloca la búsqueda al final en móviles */
+                width: 100%;
+                margin-top: 10px;
+            }
+            
+            .busquedaForma {
+                max-width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- BARRA SUPERIOR -->
@@ -14,7 +71,7 @@
             <img src="logocleans.jpg" alt="Clean Solutions Logo">
         </div>
         
-        <!-- BÚSQUEDA -->
+        <!-- BÚSQUEDA CENTRADA -->
         <div class="busquedaContainer">
             <form class="busquedaForma">
                 <input type="text" 
@@ -27,19 +84,6 @@
             </form>
             <div class="contador-resultados"></div>
         </div>
-         <!--
-        <div class="derechoContainer">
-            <button id="btnAdminAcceso" class="auth-btn">
-                🔑 Acceso Admin
-            </button>
-            <button id="btnAdminPanel" class="auth-btn" style="display: none;">
-                ⚙️ Panel Admin
-            </button>
-            <button id="btnCerrarSesionAdmin" class="auth-btn" style="display: none; background-color: #f44336; color: white; margin-left: 10px;">
-                🚪 Cerrar Sesión Admin
-            </button>
-        </div>
-        -->
     </header>
 
     <!-- MODAL DE ACCESO ADMINISTRATIVO -->
