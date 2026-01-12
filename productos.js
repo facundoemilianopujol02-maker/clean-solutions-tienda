@@ -3,20 +3,8 @@
 // ========== CONFIGURACIÓN ==========
 const PRODUCTOS_POR_DEFECTO = [
     {
-        id: 'demo-1',
-        nombre: 'Jabón Líquido Ariel',
-        precio: '$8.000',
-        imagen: 'https://via.placeholder.com/300x300/4CAF50/FFFFFF?text=Ariel',
-        descripcion: 'Jabón líquido para ropa de todo tipo',
-        caracteristicas: ['Precio por litro: $1.800', 'Limpieza profunda', 'Baja espuma']
     },
     {
-        id: 'demo-2',
-        nombre: 'Detergente en Polvo',
-        precio: '$5.000',
-        imagen: 'https://via.placeholder.com/300x300/2196F3/FFFFFF?text=Detergente',
-        descripcion: 'Detergente para ropa blanca y de color',
-        caracteristicas: ['Económico', 'Rinde más', 'Para agua fría']
     }
 ];
 
